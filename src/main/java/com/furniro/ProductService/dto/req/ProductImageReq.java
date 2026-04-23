@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductImageReq {
 
-    // can has not id (when create) and has id (when update)
     private Integer id;
 
     private Integer productID;

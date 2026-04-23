@@ -11,5 +11,6 @@ public class ColorMaster {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer colorID;
+    
     private String colorName;
 }

@@ -31,4 +31,12 @@ public class ProductController {
     public ResponseEntity<AType> compareProducts(@RequestBody List<Integer> ids) {
         return productService.compareProducts(ids);
     }
+
+    @GetMapping("/category/{categoryID}")
+    public ResponseEntity<AType> getProductsByCategory(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @PathVariable Integer categoryID) {
+        return productService.getProductsByCategory(page, size, categoryID);
+    }
 }

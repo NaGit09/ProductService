@@ -41,7 +41,8 @@ public class ProductImageService {
                 .build());
     }
 
-    public ResponseEntity<AType> getProductImageByProductID(Integer productID) {
+    public ResponseEntity<AType> getProductImageByProductID
+        (Integer productID) {
         //1. check product is existed
         productRepository.findById(productID)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
@@ -63,7 +64,8 @@ public class ProductImageService {
                 .build());
     }
 
-    public ResponseEntity<AType> addProductImage(ProductImageReq productImageReq) {
+    public ResponseEntity<AType> addProductImage
+        (ProductImageReq productImageReq) {
 
         // 1. check product is existed
         Product product = productRepository.findById(productImageReq.getProductID())
@@ -88,7 +90,8 @@ public class ProductImageService {
                 .build());
     }
 
-    public ResponseEntity<AType> updateProductImage(ProductImageReq productImageReq) {
+    public ResponseEntity<AType> updateProductImage
+        (ProductImageReq productImageReq) {
         //1. validate id
         if (productImageReq.getId() == null) {
             throw new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND);
