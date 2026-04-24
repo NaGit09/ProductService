@@ -102,6 +102,7 @@ public class ProductService {
         Integer page,
         Integer size,
         Integer categoryID) {
+        
         //1. validate page and size
         if (page == null || size == null) {
             throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);

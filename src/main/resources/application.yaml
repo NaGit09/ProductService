@@ -26,15 +26,15 @@ spring:
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
 
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID}
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        "[spring.json.trusted.packages]": "*"
 
   jpa:
     hibernate:
@@ -44,6 +44,7 @@ spring:
     show-sql: true
 
 server:
+  forward-headers-strategy: framework
   port: ${SERVER_PORT:8083}
 
 logging:
@@ -58,3 +59,11 @@ management:
     web:
       exposure:
         include: health,info
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    config-url: /api/v1/furniro/product-service/v3/api-docs/swagger-config
+    url: /api/v1/furniro/product-service/v3/api-docs
+    disable-swagger-default-url: true

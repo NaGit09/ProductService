@@ -1,8 +1,6 @@
 package com.furniro.ProductService.service;
 
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +13,13 @@ import jakarta.transaction.Transactional;
 
 import com.furniro.ProductService.dto.API.AType;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
     
     public ResponseEntity<AType> getAllCategory() {
         return ResponseEntity.ok(ApiType.builder()
@@ -31,7 +29,8 @@ public class CategoryService {
                 .build());
     }
 
-    public ResponseEntity<AType> createCategory(CategoryReq categoryDto) {
+    public ResponseEntity<AType> createCategory
+        (CategoryReq categoryDto) {
 
         if (categoryRepository.existsByCategoryName(categoryDto.getName())) {
             throw new RuntimeException("Category name already exists");
@@ -55,7 +54,8 @@ public class CategoryService {
                 .build());
     }
 
-    public ResponseEntity<AType> updateCategory(Integer id, CategoryReq categoryDto) {
+    public ResponseEntity<AType> updateCategory
+        (Integer id, CategoryReq categoryDto) {
         
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -91,5 +91,6 @@ public class CategoryService {
 
         categoryRepository.delete(category);
     }
+
 
 }

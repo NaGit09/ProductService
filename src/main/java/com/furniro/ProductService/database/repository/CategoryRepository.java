@@ -11,12 +11,11 @@ import com.furniro.ProductService.database.entity.Category;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
-    Optional<Category> findByName(String name);
+    Optional<Category> findByCategoryName(String categoryName);
 
     List<Category> findByParentCategory(Category parentCategory);
 
 
-    // Lấy tất cả danh mục gốc (cha cao nhất) để xây dựng cây
     @Query("SELECT c FROM Category c WHERE c.parentCategory IS NULL")
     List<Category> findRootCategories();
 
