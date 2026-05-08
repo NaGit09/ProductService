@@ -22,11 +22,7 @@ public class CategoryService {
 
     
     public ResponseEntity<AType> getAllCategory() {
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Get all category successfully")
-                .data(categoryRepository.findAll())
-                .build());
+        return ResponseEntity.ok(ApiType.success(categoryRepository.findAll()));
     }
 
     public ResponseEntity<AType> createCategory
@@ -47,11 +43,7 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Category created successfully")
-                .data(category)
-                .build());
+        return ResponseEntity.ok(ApiType.success(category));
     }
 
     public ResponseEntity<AType> updateCategory
@@ -72,11 +64,7 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Category updated successfully")
-                .data(category)
-                .build());
+        return ResponseEntity.ok(ApiType.success(category));
     }
     
     @Transactional
