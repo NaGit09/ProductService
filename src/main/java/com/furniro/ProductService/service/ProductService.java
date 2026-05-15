@@ -41,11 +41,7 @@ public class ProductService {
         Page<ProductListRes> products = productRepository.getProductList(pageable);
 
         // 4. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Get product list successfully")
-                .data(products)
-                .build());
+        return ResponseEntity.ok(ApiType.success(products));
     }
 
     public ResponseEntity<AType> getProductDetail(Integer id) {
@@ -62,12 +58,7 @@ public class ProductService {
         ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
 
         // 4. response
-        return ResponseEntity.ok(ApiType
-                .builder()
-                .code(200)
-                .message("Get product detail successfully")
-                .data(productDetailRes)
-                .build());
+        return ResponseEntity.ok(ApiType.success(productDetailRes));
     }
 
     public ResponseEntity<AType> compareProducts(List<Integer> ids) {
@@ -90,12 +81,7 @@ public class ProductService {
         List<ProductCompareRes> result = productRepository.compareProducts(ids);
 
         // 5. response
-
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Product compare successfully")
-                .data(result)
-                .build());
+        return ResponseEntity.ok(ApiType.success(result));
     }
 
     public ResponseEntity<AType> getProductsByCategory(
@@ -120,11 +106,7 @@ public class ProductService {
         Page<ProductListRes> products = productRepository.getProductListByCategoryID(pageable, categoryID);
 
         // 5. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Get product list by category successfully")
-                .data(products)
-                .build());
+        return ResponseEntity.ok(ApiType.success(products));
     }
 
     

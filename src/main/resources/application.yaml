@@ -1,4 +1,9 @@
+
 spring:
+  
+  application:
+    name: product-service
+
   devtools:
     add-properties: false
 
@@ -16,6 +21,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   kafka:
+    
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
     producer:
@@ -36,31 +42,28 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: update
     show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
 
 server:
-  port: ${SERVER_PORT:8081}
   forward-headers-strategy: framework
+  port: ${SERVER_PORT:8083}
 
 logging:
   level:
     root: info
-    "[org.springframework.web]": debug
-    "[org.springframework.security]": DEBUG
+    org.springframework.web: debug
+    org.springframework.security: DEBUG
+
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
+        include: health,info
 
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    config-url: /api/v1/furniro/auth-service/v3/api-docs/swagger-config
-    url: /api/v1/furniro/auth-service/v3/api-docs
+    config-url: /api/v1/furniro/product-service/v3/api-docs/swagger-config
+    url: /api/v1/furniro/product-service/v3/api-docs
     disable-swagger-default-url: true

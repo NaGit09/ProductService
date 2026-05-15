@@ -8,9 +8,12 @@ import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.req.ProductImageReq;
 import com.furniro.ProductService.exception.ProductException;
+import com.furniro.ProductService.service.kafka.KafkaProducer;
 import com.furniro.ProductService.utils.ProductErrorCode;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ public class ProductImageService {
 
     private final ProductImageRepository productImageRepository;
     private final ProductRepository productRepository;
+    private final KafkaProducer producer;
 
     public ResponseEntity<AType> getProductImage(Integer id) {
         //1. validate id
@@ -34,11 +38,7 @@ public class ProductImageService {
                 .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND));
         
         //3. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Get product image successfully")
-                .data(productImage)
-                .build());
+        return ResponseEntity.ok(ApiType.success(productImage));
     }
 
     public ResponseEntity<AType> getProductImageByProductID
@@ -57,11 +57,7 @@ public class ProductImageService {
         }
         
         //4. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Get product image by product ID successfully")
-                .data(productImage)
-                .build());
+        return ResponseEntity.ok(ApiType.success(productImage));
     }
 
     public ResponseEntity<AType> addProductImage
@@ -80,14 +76,13 @@ public class ProductImageService {
         
         productImageRepository.save(productImage);
 
-        // 3. emit kafka event : product.image.active
-        // kafkaTemplate.send("product.image.active", productImage);
+        // 3. emit kafka event : upload.active
+        Map<String, Object> message = new HashMap<>();
+        message.put("fileID", productImage.getImageID());
+        producer.send("upload.active", message);
 
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Add product image successfully")
-                .data(productImage)
-                .build());
+        // 4. response
+        return ResponseEntity.ok(ApiType.success(productImage));
     }
 
     public ResponseEntity<AType> updateProductImage
@@ -112,14 +107,13 @@ public class ProductImageService {
 
         productImageRepository.save(productImage);
 
-        // 5. emit kafka event : product.image.update
+        // 5. emit kafka event : upload.active
+        Map<String, Object> message = new HashMap<>();
+        message.put("fileID", productImage.getImageID());
+        producer.send("upload.active", message);
 
         //6. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Update product image successfully")
-                .data(productImage)
-                .build());
+        return ResponseEntity.ok(ApiType.success(productImage));
     }
 
     public ResponseEntity<AType> deleteProductImage(Integer id) {
@@ -135,14 +129,13 @@ public class ProductImageService {
         //3. delete product image
         productImageRepository.delete(productImage);
 
-        // 4. emit kafka event : product.image.delete
-
+        // 4. emit kafka event : upload.delete
+        Map<String, Object> message = new HashMap<>();
+        message.put("fileID", productImage.getImageID());
+        producer.send("upload.delete", message);
+        
         //5. response
-        return ResponseEntity.ok(ApiType.builder()
-                .code(200)
-                .message("Delete product image successfully")
-                .data(productImage)
-                .build());
+        return ResponseEntity.ok(ApiType.success(null));
     }
 
 }
