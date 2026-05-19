@@ -1,10 +1,5 @@
 package com.furniro.ProductService.config;
-
-<<<<<<< HEAD
-import com.fasterxml.jackson.databind.JsonSerializer;
-=======
 import org.apache.kafka.clients.consumer.ConsumerConfig;
->>>>>>> ad30d7c25cdc1872fb68fc85965eeb4701d558ab
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -18,11 +13,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-<<<<<<< HEAD
-=======
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
->>>>>>> ad30d7c25cdc1872fb68fc85965eeb4701d558ab
 
 import java.util.HashMap;
 import java.util.Map;
