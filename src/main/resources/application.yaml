@@ -51,6 +51,7 @@ logging:
   level:
     root: info
     org.springframework.web: debug
+    org.springframework.security: DEBUG
 
 
 management:

@@ -28,12 +28,12 @@ public class CategoryService {
     public ResponseEntity<AType> createCategory
         (CategoryReq categoryDto) {
 
-        if (categoryRepository.existsByCategoryName(categoryDto.getName())) {
+        if (categoryRepository.existsByCategoryName(categoryDto.getCategoryName())) {
             throw new RuntimeException("Category name already exists");
         }
 
         Category category = new Category();
-        category.setCategoryName(categoryDto.getName());
+        category.setCategoryName(categoryDto.getCategoryName());
 
         if (categoryDto.getParentId() != null) {
             Category parent = categoryRepository.findById(categoryDto.getParentId())
@@ -52,8 +52,8 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (categoryDto.getName() != null) {
-            category.setCategoryName(categoryDto.getName());
+        if (categoryDto.getCategoryName() != null) {
+            category.setCategoryName(categoryDto.getCategoryName());
         }
 
         if (categoryDto.getParentId() != null) {
