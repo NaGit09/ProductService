@@ -73,6 +73,7 @@ public class ProductImageService {
         productImage.setProduct(product);
         productImage.setUrl(productImageReq.getUrl());
         productImage.setSortOrder(productImageReq.getSortOrder());
+        productImage.setImageID(productImageReq.getImageID());
         
         productImageRepository.save(productImage);
 
@@ -109,7 +110,7 @@ public class ProductImageService {
 
         // 5. emit kafka event : upload.active
         Map<String, Object> message = new HashMap<>();
-        message.put("fileID", productImage.getImageID());
+        message.put("fileID", productImageReq.getImageID());
         producer.send("upload.active", message);
 
         //6. response

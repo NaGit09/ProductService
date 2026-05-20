@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import com.furniro.ProductService.utils.ProductStatus;
 
@@ -38,15 +39,19 @@ public class Product {
     private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<ProductVariant> variants;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<ProductImage> images;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private ProductSpecification specification;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Warranty warranty;
 
     @CreationTimestamp

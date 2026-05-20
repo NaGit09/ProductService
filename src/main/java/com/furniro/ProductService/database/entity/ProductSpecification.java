@@ -2,6 +2,7 @@ package com.furniro.ProductService.database.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "ProductSpecification")
@@ -22,5 +23,6 @@ public class ProductSpecification {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "productID", nullable = false)
+    @JsonBackReference
     private Product product;
 }

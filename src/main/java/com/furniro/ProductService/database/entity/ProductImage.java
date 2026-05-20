@@ -2,6 +2,7 @@ package com.furniro.ProductService.database.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "ProductImage")
@@ -18,5 +19,6 @@ public class ProductImage {
 
     @ManyToOne
     @JoinColumn(name = "ProductID")
+    @JsonBackReference
     private Product product;
 }

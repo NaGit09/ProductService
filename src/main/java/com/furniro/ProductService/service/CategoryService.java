@@ -8,21 +8,25 @@ import com.furniro.ProductService.database.entity.Category;
 import com.furniro.ProductService.database.repository.CategoryRepository;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.req.CategoryReq;
+import com.furniro.ProductService.dto.mapper.CategoryMapper;
 
 import jakarta.transaction.Transactional;
 
 import com.furniro.ProductService.dto.API.AType;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     
     public ResponseEntity<AType> getAllCategory() {
-        return ResponseEntity.ok(ApiType.success(categoryRepository.findAll()));
+        List<Category> rootCategories = categoryRepository.findRootCategories();
+        return ResponseEntity.ok(ApiType.success(categoryMapper.toResponseList(rootCategories)));
     }
 
     public ResponseEntity<AType> createCategory
@@ -43,7 +47,7 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        return ResponseEntity.ok(ApiType.success(category));
+        return ResponseEntity.ok(ApiType.success(categoryMapper.toResponse(category)));
     }
 
     public ResponseEntity<AType> updateCategory
@@ -64,7 +68,7 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        return ResponseEntity.ok(ApiType.success(category));
+        return ResponseEntity.ok(ApiType.success(categoryMapper.toResponse(category)));
     }
     
     @Transactional

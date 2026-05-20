@@ -20,7 +20,7 @@ public class ProductImageController {
     }
 
     @GetMapping("/product/{productID}")
-    public ResponseEntity<AType> getProductImageByProductID(@PathVariable Integer productID) {
+    public ResponseEntity<AType> getProductImageByxProductID(@PathVariable Integer productID) {
         return productImageService.getProductImageByProductID(productID);
     }
 

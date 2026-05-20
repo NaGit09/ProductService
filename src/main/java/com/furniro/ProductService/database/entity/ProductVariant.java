@@ -2,6 +2,7 @@ package com.furniro.ProductService.database.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "ProductVariant")
@@ -22,6 +23,7 @@ public class ProductVariant {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "productID", nullable = false)
+    @JsonBackReference
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)

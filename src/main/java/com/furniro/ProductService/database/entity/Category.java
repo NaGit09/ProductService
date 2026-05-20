@@ -2,6 +2,8 @@ package com.furniro.ProductService.database.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.List;
 
@@ -19,8 +21,10 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentCategoryID")
+    @JsonBackReference
     private Category parentCategory;
 
     @OneToMany(mappedBy = "parentCategory")
+    @JsonManagedReference
     private List<Category> subCategories;
 }
