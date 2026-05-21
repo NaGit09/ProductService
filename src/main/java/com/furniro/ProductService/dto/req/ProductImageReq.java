@@ -3,7 +3,6 @@ package com.furniro.ProductService.dto.req;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Null;
 import lombok.AccessLevel;
 
 @Data
