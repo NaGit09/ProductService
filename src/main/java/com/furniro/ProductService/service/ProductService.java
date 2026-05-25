@@ -1,6 +1,7 @@
 package com.furniro.ProductService.service;
 
 import com.furniro.ProductService.database.entity.Product;
+import com.furniro.ProductService.database.entity.ProductVariant;
 import com.furniro.ProductService.database.repository.ProductRepository;
 import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ApiType;
@@ -9,6 +10,8 @@ import com.furniro.ProductService.dto.res.ProductCompareRes;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
 import com.furniro.ProductService.exception.ProductException;
+import com.furniro.ProductService.service.event.ProductViewedEvent;
+import com.furniro.ProductService.service.kafka.ProductViewedProducer;
 import com.furniro.ProductService.utils.ProductErrorCode;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,6 +31,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductViewedProducer productViewedProducer;
 
     public ResponseEntity<AType> getProducts(Integer page, Integer size) {
         // 1. validate page and size
@@ -56,6 +61,12 @@ public class ProductService {
 
         // 3. map to response
         ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
+
+        // 4. publish product viewed event
+        productViewedProducer.send(ProductViewedEvent.builder()
+                .productID(product.getProductID())
+                .viewedAt(LocalDateTime.now())
+                .build());
 
         // 4. response
         return ResponseEntity.ok(ApiType.success(productDetailRes));
