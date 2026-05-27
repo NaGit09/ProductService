@@ -31,8 +31,6 @@ spring:
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID}
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
       properties:
         "[spring.json.trusted.packages]": "*"
 
@@ -42,6 +40,10 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: update
     show-sql: true
+
+  services:
+    recommend-service:
+      url: http://recom-product-service:8087
 
 server:
   forward-headers-strategy: framework

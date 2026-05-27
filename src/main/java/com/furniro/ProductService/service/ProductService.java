@@ -7,9 +7,12 @@ import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.mapper.ProductMapper;
 import com.furniro.ProductService.dto.res.ProductCompareRes;
+import com.furniro.ProductService.dto.res.ProductDetailRecomRes;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
+import com.furniro.ProductService.dto.res.RecomProductRes;
 import com.furniro.ProductService.exception.ProductException;
+import com.furniro.ProductService.service.client.RecommendClient;
 import com.furniro.ProductService.service.event.ProductViewedEvent;
 import com.furniro.ProductService.service.kafka.ProductViewedProducer;
 import com.furniro.ProductService.utils.ProductErrorCode;
@@ -22,8 +25,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ProductViewedProducer productViewedProducer;
+    private final RecommendClient recommendClient;
 
     public ResponseEntity<AType> getProducts(Integer page, Integer size) {
         // 1. validate page and size
@@ -50,27 +55,55 @@ public class ProductService {
     }
 
     public ResponseEntity<AType> getProductDetail(Integer id) {
-        // 1. validate id
-        if (id == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
-        }
-
-        // 2. find product
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
-
-        // 3. map to response
-        ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
-
-        // 4. publish product viewed event
-        productViewedProducer.send(ProductViewedEvent.builder()
-                .productID(product.getProductID())
-                .viewedAt(LocalDateTime.now())
-                .build());
-
-        // 4. response
-        return ResponseEntity.ok(ApiType.success(productDetailRes));
+    // 1. validate id
+    if (id == null) {
+        throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
     }
+
+    // 2. find product
+    Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+    // 3. map current product to response
+    ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
+
+    // 4. publish product viewed event
+    productViewedProducer.send(ProductViewedEvent.builder()
+            .productID(product.getProductID())
+            .viewedAt(LocalDateTime.now())
+            .build());
+
+    // 5. call RecommendService
+    List<RecomProductRes> recommendItems =
+            recommendClient.getRecommendProducts(product.getProductID());
+
+    // 6. get recommended product IDs
+    List<Integer> recommendProductIDs = recommendItems.stream()
+            .map(RecomProductRes::getProductID)
+            .filter(recomProductID -> !recomProductID.equals(product.getProductID()))
+            .toList();
+
+    // 7. query products by IDs
+    List<Product> recommendProducts = productRepository.findAllById(recommendProductIDs);
+
+    // 8. keep order same as RecommendService response
+    Map<Integer, Product> productMap = recommendProducts.stream()
+            .collect(Collectors.toMap(Product::getProductID, Function.identity()));
+
+    List<ProductListRes> recommendProductResponses = recommendProductIDs.stream()
+            .map(productMap::get)
+            .filter(Objects::nonNull)
+            .map(productMapper::toListRes)
+            .toList();
+
+    // 9. build final response
+    ProductDetailRecomRes response = ProductDetailRecomRes.builder()
+            .product(productDetailRes)
+            .recommendProducts(recommendProductResponses)
+            .build();
+
+    return ResponseEntity.ok(ApiType.success(response));
+}
 
     public ResponseEntity<AType> compareProducts(List<Integer> ids) {
         // 1. validate ids

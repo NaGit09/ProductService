@@ -8,6 +8,7 @@ import com.furniro.ProductService.database.entity.Product;
 import com.furniro.ProductService.database.entity.ProductImage;
 import com.furniro.ProductService.database.entity.ProductVariant;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
+import com.furniro.ProductService.dto.res.ProductListRes;
 
 import java.util.List;
 
@@ -39,6 +40,9 @@ public interface ProductMapper {
 
 
     ProductDetailRes toDetailRes(Product product);
+
+    ProductListRes toListRes(Product product);
+
 
     @Named("mapImages")
     default List<String> mapImages(List<ProductImage> images) {

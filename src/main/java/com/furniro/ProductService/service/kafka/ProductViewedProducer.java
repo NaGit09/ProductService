@@ -3,7 +3,6 @@ package com.furniro.ProductService.service.kafka;
 import com.furniro.ProductService.service.event.ProductViewedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,18 +11,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProductViewedProducer {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private static final String PRODUCT_VIEWED_TOPIC = "product.viewed";
 
-    @Value("${app.kafka.topic.product-viewed}")
-    private String productViewedTopic;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void send(ProductViewedEvent event) {
         String key = String.valueOf(event.getProductID());
 
-        kafkaTemplate.send(productViewedTopic, key, event);
+        kafkaTemplate.send(PRODUCT_VIEWED_TOPIC, key, event);
 
-        log.info("Sent product viewed event. topic={}, productID={}, userID={}, sessionID={}",
-                productViewedTopic,
-                event.getProductID());
+        log.info(
+                "Sent product viewed event. topic={}, productID={}",
+                PRODUCT_VIEWED_TOPIC,
+                event.getProductID()
+        );
     }
 }
