@@ -17,7 +17,7 @@ public class RecommendClient {
 
     private final RestClient.Builder restClientBuilder;
 
-    @Value("http://recom-product-service:8087")
+    @Value("${services.recommend-service.url}")
     private String recommendServiceUrl;
 
     public List<RecomProductRes> getRecommendProducts(Integer productID) {
