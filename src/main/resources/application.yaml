@@ -1,6 +1,4 @@
-
 spring:
-  
   application:
     name: product-service
 
@@ -21,7 +19,6 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   kafka:
-    
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
     producer:
@@ -41,9 +38,9 @@ spring:
       ddl-auto: update
     show-sql: true
 
-  services:
-    recommend-service:
-      url: http://recom-product-service:8087
+services:
+  recommend-service:
+    url: http://recom-product-service:8087
 
 server:
   forward-headers-strategy: framework
@@ -54,7 +51,6 @@ logging:
     root: info
     org.springframework.web: debug
     org.springframework.security: DEBUG
-
 
 management:
   endpoints:
