@@ -11,6 +11,7 @@ import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
@@ -38,9 +39,9 @@ public interface ProductMapper {
     @Mapping(source = "variants", target = "productVariantID", qualifiedByName = "mapProductVariantID")
 
 
-
     ProductDetailRes toDetailRes(Product product);
-
+    
+    @Mapping(source = "images", target = "url", qualifiedByName = "mapFirstImage")
     ProductListRes toListRes(Product product);
 
 
@@ -50,6 +51,21 @@ public interface ProductMapper {
             return null;
         return images.stream().map(ProductImage::getUrl).toList();
     }
+
+    @Named("mapFirstImage")
+    default String mapFirstImage(List<ProductImage> images) {
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+
+        return images.stream()
+                .map(ProductImage::getUrl)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+
 
     @Named("mapSizes")
     default List<String> mapSizes(List<ProductVariant> variants) {
