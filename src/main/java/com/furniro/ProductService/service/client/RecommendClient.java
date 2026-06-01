@@ -2,6 +2,8 @@ package com.furniro.ProductService.service.client;
 
 import com.furniro.ProductService.dto.res.RecomProductRes;
 import com.furniro.ProductService.dto.res.RecomServiceRes;
+import com.furniro.ProductService.utils.RecomReason;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -20,7 +22,7 @@ public class RecommendClient {
     @Value("${services.recommend-service.url}")
     private String recommendServiceUrl;
 
-    public List<RecomProductRes> getRecommendProducts(Integer productID) {
+    public List<RecomProductRes> getRecommendProducts(Integer productID,RecomReason reason) {
         try {
             RestClient restClient = restClientBuilder
                     .baseUrl(recommendServiceUrl)
@@ -28,7 +30,15 @@ public class RecommendClient {
 
             RecomServiceRes<List<RecomProductRes>> response =
                     restClient.get()
-                            .uri("/recommend-products/{productID}", productID)
+                            .uri(uriBuilder -> {
+                                var builder = uriBuilder.path("/recommend-products/{productID}");
+
+                                if (reason != null) {
+                                    builder.queryParam("reason", reason.name());
+                                }
+
+                                return builder.build(productID);
+                            })
                             .retrieve()
                             .body(new ParameterizedTypeReference<>() {});
 

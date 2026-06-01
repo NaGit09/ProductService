@@ -16,6 +16,7 @@ import com.furniro.ProductService.service.client.RecommendClient;
 import com.furniro.ProductService.service.event.ProductViewedEvent;
 import com.furniro.ProductService.service.kafka.ProductViewedProducer;
 import com.furniro.ProductService.utils.ProductErrorCode;
+import com.furniro.ProductService.utils.RecomReason;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,7 +55,7 @@ public class ProductService {
         return ResponseEntity.ok(ApiType.success(products));
     }
 
-    public ResponseEntity<AType> getProductDetail(Integer id) {
+    public ResponseEntity<AType> getProductDetail(Integer id,RecomReason reason) {
     // 1. validate id
     if (id == null) {
         throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -70,12 +71,13 @@ public class ProductService {
     // 4. publish product viewed event
     productViewedProducer.send(ProductViewedEvent.builder()
             .productID(product.getProductID())
+            .reason(reason)
             .viewedAt(LocalDateTime.now())
             .build());
 
     // 5. call RecommendService
     List<RecomProductRes> recommendItems =
-            recommendClient.getRecommendProducts(product.getProductID());
+            recommendClient.getRecommendProducts(product.getProductID(),reason);
 
     // 6. get recommended product IDs
     List<Integer> recommendProductIDs = recommendItems.stream()

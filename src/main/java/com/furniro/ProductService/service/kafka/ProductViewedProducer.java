@@ -16,14 +16,21 @@ public class ProductViewedProducer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void send(ProductViewedEvent event) {
+        if (event == null || event.getProductID() == null) {
+            log.warn("Skip sending invalid product viewed event: {}", event);
+            return;
+        }
+
         String key = String.valueOf(event.getProductID());
 
         kafkaTemplate.send(PRODUCT_VIEWED_TOPIC, key, event);
 
         log.info(
-                "Sent product viewed event. topic={}, productID={}",
+                "Sent product viewed event. topic={}, productID={}, viewedAt={}, reason={}",
                 PRODUCT_VIEWED_TOPIC,
-                event.getProductID()
+                event.getProductID(),
+                event.getViewedAt(),
+                event.getReason()
         );
     }
 }
