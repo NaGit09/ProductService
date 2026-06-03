@@ -28,6 +28,10 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
+    public ResponseEntity<AType> getTotalProduct() {
+        Long total = productRepository.count();
+        return ResponseEntity.ok(ApiType.success(total));
+    }
     public ResponseEntity<AType> getProducts(Integer page, Integer size) {
         // 1. validate page and size
         if (page == null || size == null) {

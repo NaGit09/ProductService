@@ -15,6 +15,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @GetMapping("/total")
+    public ResponseEntity<AType> getTotalProduct() {
+        return productService.getTotalProduct();
+    }
+    
     @GetMapping
     public ResponseEntity<AType> getProducts(
             @RequestParam(defaultValue = "0") Integer page,
