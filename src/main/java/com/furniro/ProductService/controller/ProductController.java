@@ -37,6 +37,7 @@ public class ProductController {
         return productService.compareProducts(ids);
     }
 
+    // Wishlist
     @GetMapping("/wishlist-products")
     public ResponseEntity<AType> getWishlistProducts(
             @AuthenticationPrincipal Jwt jwt,
@@ -76,6 +77,15 @@ public class ProductController {
         return productService.removeFromWishlist(userId, productId);
     }
 
+
+    // Search product
+    @GetMapping("/search")
+    public ResponseEntity<AType> searchProducts(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam String query) {
+        return productService.searchProducts(page, size, query);
+    }
     @GetMapping("/category/{categoryID}")
     public ResponseEntity<AType> getProductsByCategory(
             @RequestParam(defaultValue = "0") Integer page,

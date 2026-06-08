@@ -77,4 +77,22 @@ public interface ProductRepository extends JpaRepository<Product, Integer>,
                 WHERE p.status = 'ACTIVE' AND p.category.categoryID = :categoryID
             """)
     Page<ProductListRes> getProductListByCategoryID(Pageable pageable, Integer categoryID);
-}
+    @Query("""
+                SELECT new com.furniro.ProductService.dto.res.ProductListRes(
+                    p.productID,
+                    p.name,
+                    p.status,
+                    p.brand,
+                    p.description,
+                    p.basePrice,
+                    pi.url
+                )
+                FROM Product p
+                LEFT JOIN p.images pi ON pi.sortOrder = 0
+                WHERE p.status = 'ACTIVE' AND (
+                             LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(p.brand) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
+                            )
+           """)
+    Page<ProductListRes> searchProducts(Pageable pageable,String query);}

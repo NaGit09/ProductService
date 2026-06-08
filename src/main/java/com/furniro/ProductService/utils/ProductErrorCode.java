@@ -21,9 +21,11 @@ public enum ProductErrorCode {
 
     PRODUCT_IMAGE_NOT_FOUND(404, "Product image not found",
             HttpStatus.NOT_FOUND),
-    WISHLIST_PRODUCT_NOT_FOUND(404, "Wishlist not found", HttpStatus.NOT_FOUND),
+    WISHLIST_PRODUCT_NOT_FOUND(404, "Product not found in wishlist", HttpStatus.NOT_FOUND),
 
-    PRODUCT_ALREADY_IN_WISHLIST(409, "Product already in wishlist", HttpStatus.CONFLICT);
+    PRODUCT_ALREADY_IN_WISHLIST(409, "Product already in wishlist", HttpStatus.CONFLICT),
+
+    INVALID_SEARCH_QUERY(404, "Invalid search query", HttpStatus.BAD_REQUEST);
 
     private final int code; // Business error code (dùng trong response JSON)
     private final String message; // Message trả về client
@@ -34,4 +36,5 @@ public enum ProductErrorCode {
         this.message = message;
         this.httpStatus = httpStatus;
     }
+
 }

@@ -217,4 +217,15 @@ public class ProductService {
         return ResponseEntity.ok(ApiType.success("Removed product from wishlist successfully"));
     }
 
+    public ResponseEntity<AType> searchProducts(Integer page, Integer size, String query) {
+        if (page == null || size == null) {
+            throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);
+        }
+        if (query == null || query.isEmpty()) {
+            throw new ProductException(ProductErrorCode.INVALID_SEARCH_QUERY);
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductListRes> products = productRepository.searchProducts(pageable, query.trim());
+        return ResponseEntity.ok(ApiType.success(products));
+    }
 }
