@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ProductErrorCode {
+    USER_NOT_FOUND(404, "User not found", HttpStatus.NOT_FOUND),
 
     CATEGORY_NOT_FOUND(404, "Category not found", HttpStatus.NOT_FOUND),
 
@@ -18,7 +19,11 @@ public enum ProductErrorCode {
 
     MAXIMUM_COMPARISON(404, "Maximum 3 products can be compared at once", HttpStatus.BAD_REQUEST),
 
-    PRODUCT_IMAGE_NOT_FOUND(404, "Product image not found", HttpStatus.NOT_FOUND);
+    PRODUCT_IMAGE_NOT_FOUND(404, "Product image not found",
+            HttpStatus.NOT_FOUND),
+    WISHLIST_PRODUCT_NOT_FOUND(404, "Wishlist not found", HttpStatus.NOT_FOUND),
+
+    PRODUCT_ALREADY_IN_WISHLIST(409, "Product already in wishlist", HttpStatus.CONFLICT);
 
     private final int code; // Business error code (dùng trong response JSON)
     private final String message; // Message trả về client

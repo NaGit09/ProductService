@@ -38,12 +38,10 @@ public interface ProductMapper {
     @Mapping(source = "variants", target = "skus", qualifiedByName = "mapSkus")
     @Mapping(source = "variants", target = "productVariantID", qualifiedByName = "mapProductVariantID")
 
-
     ProductDetailRes toDetailRes(Product product);
-    
+
     @Mapping(source = "images", target = "url", qualifiedByName = "mapFirstImage")
     ProductListRes toListRes(Product product);
-
 
     @Named("mapImages")
     default List<String> mapImages(List<ProductImage> images) {
@@ -64,8 +62,6 @@ public interface ProductMapper {
                 .findFirst()
                 .orElse(null);
     }
-
-
 
     @Named("mapSizes")
     default List<String> mapSizes(List<ProductVariant> variants) {
