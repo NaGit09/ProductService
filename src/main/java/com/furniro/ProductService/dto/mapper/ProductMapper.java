@@ -8,8 +8,10 @@ import com.furniro.ProductService.database.entity.Product;
 import com.furniro.ProductService.database.entity.ProductImage;
 import com.furniro.ProductService.database.entity.ProductVariant;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
+import com.furniro.ProductService.dto.res.ProductListRes;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
@@ -36,15 +38,29 @@ public interface ProductMapper {
     @Mapping(source = "variants", target = "skus", qualifiedByName = "mapSkus")
     @Mapping(source = "variants", target = "productVariantID", qualifiedByName = "mapProductVariantID")
 
-
-
     ProductDetailRes toDetailRes(Product product);
+
+    @Mapping(source = "images", target = "url", qualifiedByName = "mapFirstImage")
+    ProductListRes toListRes(Product product);
 
     @Named("mapImages")
     default List<String> mapImages(List<ProductImage> images) {
         if (images == null)
             return null;
         return images.stream().map(ProductImage::getUrl).toList();
+    }
+
+    @Named("mapFirstImage")
+    default String mapFirstImage(List<ProductImage> images) {
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+
+        return images.stream()
+                .map(ProductImage::getUrl)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Named("mapSizes")
