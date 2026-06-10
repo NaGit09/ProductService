@@ -2,8 +2,6 @@ package com.furniro.ProductService.controller;
 
 import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.service.ProductService;
-import com.furniro.ProductService.utils.RecomReason;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,9 +25,8 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AType> getProductDetail(@PathVariable Integer id,
-            @RequestParam(required = false) RecomReason reason) {
-        return productService.getProductDetail(id, reason);
+    public ResponseEntity<AType> getProductDetail(@PathVariable Integer id) {
+        return productService.getProductDetail(id);
     }
 
     @PostMapping("/compare")
