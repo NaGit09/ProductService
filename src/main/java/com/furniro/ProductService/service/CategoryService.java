@@ -3,12 +3,14 @@ package com.furniro.ProductService.service;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 
 import com.furniro.ProductService.database.entity.Category;
 import com.furniro.ProductService.database.repository.CategoryRepository;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.req.CategoryReq;
 import com.furniro.ProductService.dto.mapper.CategoryMapper;
+import com.furniro.ProductService.dto.res.CategoryResponse;
 
 import jakarta.transaction.Transactional;
 
@@ -22,13 +24,15 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final CategoryCacheService categoryCacheService;
 
     
     public ResponseEntity<AType> getAllCategory() {
-        List<Category> rootCategories = categoryRepository.findRootCategories();
-        return ResponseEntity.ok(ApiType.success(categoryMapper.toResponseList(rootCategories)));
+        List<CategoryResponse> rootCategories = categoryCacheService.getRootCategories();
+        return ResponseEntity.ok(ApiType.success(rootCategories));
     }
 
+    @CacheEvict(value = "category:list", allEntries = true)
     public ResponseEntity<AType> createCategory
         (CategoryReq categoryDto) {
 
@@ -50,6 +54,7 @@ public class CategoryService {
         return ResponseEntity.ok(ApiType.success(categoryMapper.toResponse(category)));
     }
 
+    @CacheEvict(value = "category:list", allEntries = true)
     public ResponseEntity<AType> updateCategory
         (Integer id, CategoryReq categoryDto) {
         
@@ -72,6 +77,7 @@ public class CategoryService {
     }
     
     @Transactional
+    @CacheEvict(value = "category:list", allEntries = true)
     public void deleteCategory(Integer id) {
 
         Category category = categoryRepository.findById(id)

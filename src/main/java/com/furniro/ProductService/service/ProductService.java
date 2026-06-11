@@ -30,6 +30,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final WishlistRepository wishlistRepository;
+    private final ProductCacheService productCacheService;
 
     public ResponseEntity<AType> getTotalProduct() {
         Long total = productRepository.count();
@@ -58,14 +59,10 @@ public class ProductService {
             throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        // 2. find product
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+        // 2. retrieve cached detail
+        ProductDetailRes productDetailRes = productCacheService.getProductDetail(id);
 
-        // 3. map to response
-        ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
-
-        // 4. response
+        // 3. response
         return ResponseEntity.ok(ApiType.success(productDetailRes));
     }
 
