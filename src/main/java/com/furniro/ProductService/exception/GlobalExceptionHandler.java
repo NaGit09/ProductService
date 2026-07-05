@@ -2,7 +2,6 @@ package com.furniro.ProductService.exception;
 
 import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ErrorType;
-import com.furniro.ProductService.utils.ProductErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,30 +12,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ProductException.class)
-    public ResponseEntity<AType> handleProductException(ProductException ex) {
-        ProductErrorCode errorCode = ex.getErrorCode();
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<AType> handleCustomException(CustomException ex) {
+        ErrorType error = ex.getErrorCode();
 
-        AType error = ErrorType.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-
-        return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(error);
-    }
-
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<AType> handleBaseException(BaseException ex) {
-        AType error = ErrorType.builder()
-                .code(ex.getCode())
+        AType responseError = ErrorType.builder()
+                .code(error.getCode())
                 .message(ex.getMessage())
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.valueOf(ex.getCode()))
-                .body(error);
+                .status(HttpStatus.valueOf(error.getCode()))
+                .body(responseError);
     }
 
     @ExceptionHandler(Exception.class)

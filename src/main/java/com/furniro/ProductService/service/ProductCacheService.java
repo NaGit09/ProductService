@@ -4,8 +4,8 @@ import com.furniro.ProductService.database.entity.Product;
 import com.furniro.ProductService.database.repository.ProductRepository;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.mapper.ProductMapper;
-import com.furniro.ProductService.exception.ProductException;
-import com.furniro.ProductService.utils.ProductErrorCode;
+import com.furniro.ProductService.exception.CustomException;
+import com.furniro.ProductService.dto.API.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class ProductCacheService {
     @Cacheable(value = "product:detail", key = "#id")
     public ProductDetailRes getProductDetail(Integer id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
         return productMapper.toDetailRes(product);
     }
 }

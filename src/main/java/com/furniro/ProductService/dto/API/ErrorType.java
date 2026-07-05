@@ -47,4 +47,11 @@ public class ErrorType extends AType {
                 .message(message)
                 .build();
     }
+
+    public static ErrorType conflict(String message) {
+        return ErrorType.builder()
+                .code(409)
+                .message(message)
+                .build();
+    }
 }

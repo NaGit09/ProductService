@@ -10,8 +10,8 @@ import com.furniro.ProductService.dto.mapper.ProductMapper;
 import com.furniro.ProductService.dto.res.ProductCompareRes;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
-import com.furniro.ProductService.exception.ProductException;
-import com.furniro.ProductService.utils.ProductErrorCode;
+import com.furniro.ProductService.dto.API.ErrorType;
+import com.furniro.ProductService.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +32,7 @@ public class ProductService {
     private final WishlistRepository wishlistRepository;
     private final ProductCacheService productCacheService;
 
+    // Product Management
     public ResponseEntity<AType> getTotalProduct() {
         Long total = productRepository.count();
         return ResponseEntity.ok(ApiType.success(total));
@@ -40,7 +41,7 @@ public class ProductService {
     public ResponseEntity<AType> getProducts(Integer page, Integer size) {
         // 1. validate page and size
         if (page == null || size == null) {
-            throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);
+            throw new CustomException(ErrorType.badRequest("Invalid page size"));
         }
 
         // 2. create pageable
@@ -56,7 +57,7 @@ public class ProductService {
     public ResponseEntity<AType> getProductDetail(Integer id) {
         // 1. validate id
         if (id == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product not found"));
         }
 
         // 2. retrieve cached detail
@@ -66,20 +67,45 @@ public class ProductService {
         return ResponseEntity.ok(ApiType.success(productDetailRes));
     }
 
+    public ResponseEntity<AType> getProductsByCategory(
+            Integer page,
+            Integer size,
+            Integer categoryID) {
+
+        // 1. validate page and size
+        if (page == null || size == null) {
+            throw new CustomException(ErrorType.badRequest("Invalid page size"));
+        }
+
+        // 2. validate categoryID
+        if (categoryID == null) {
+            throw new CustomException(ErrorType.notFound("Category not found"));
+        }
+
+        // 3. create pageable
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 4. find products
+        Page<ProductListRes> products = productRepository.getProductListByCategoryID(pageable, categoryID);
+
+        // 5. response
+        return ResponseEntity.ok(ApiType.success(products));
+    }
+
     public ResponseEntity<AType> compareProducts(List<Integer> ids) {
         // 1. validate ids
         if (ids == null || ids.isEmpty()) {
-            throw new ProductException(ProductErrorCode.PRODUCT_EMPTY);
+            throw new CustomException(ErrorType.badRequest("Product ids cannot be empty"));
         }
 
         // 2. check duplicate
         if (ids.size() != new HashSet<>(ids).size()) {
-            throw new ProductException(ProductErrorCode.DUPLICATE_PRODUCT);
+            throw new CustomException(ErrorType.badRequest("Duplicate products detected"));
         }
 
         // 3. check maximum comparison
         if (ids.size() > 3) {
-            throw new ProductException(ProductErrorCode.MAXIMUM_COMPARISON);
+            throw new CustomException(ErrorType.badRequest("Maximum 3 products can be compared at once"));
         }
 
         // 4. find products
@@ -89,13 +115,14 @@ public class ProductService {
         return ResponseEntity.ok(ApiType.success(result));
     }
 
+    // Wishlist Management
     public ResponseEntity<AType> getWishlistProducts(Integer userId, Integer page, Integer size) {
         if (userId == null) {
-            throw new ProductException(ProductErrorCode.USER_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("User not found"));
         }
 
         if (page == null || size == null || page < 0 || size <= 0) {
-            throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);
+            throw new CustomException(ErrorType.badRequest("Invalid page size"));
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -109,16 +136,16 @@ public class ProductService {
 
     public ResponseEntity<AType> addToWishlist(Integer userId, Integer productId) {
         if (userId == null || productId == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product not found"));
         }
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
 
         boolean existed = wishlistRepository.existsByUserIdAndProduct_ProductID(userId, productId);
 
         if (existed) {
-            throw new ProductException(ProductErrorCode.PRODUCT_ALREADY_IN_WISHLIST);
+            throw new CustomException(ErrorType.conflict("Product already in wishlist"));
         }
 
         Wishlist wishlist = Wishlist.builder()
@@ -133,57 +160,34 @@ public class ProductService {
 
     public ResponseEntity<AType> removeFromWishlist(Integer userId, Integer productId) {
         if (userId == null) {
-            throw new ProductException(ProductErrorCode.USER_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("User not found"));
         }
 
         if (productId == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product not found"));
         }
 
         Wishlist wishlist = wishlistRepository
                 .findByUserIdAndProduct_ProductID(userId, productId)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.WISHLIST_PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found in wishlist")));
 
         wishlistRepository.delete(wishlist);
 
         return ResponseEntity.ok(ApiType.success("Removed product from wishlist successfully"));
     }
 
+    // Search Management
     public ResponseEntity<AType> searchProducts(Integer page, Integer size, String query) {
         if (page == null || size == null) {
-            throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);
+            throw new CustomException(ErrorType.badRequest("Invalid page size"));
         }
         if (query == null || query.isEmpty()) {
-            throw new ProductException(ProductErrorCode.INVALID_SEARCH_QUERY);
+            throw new CustomException(ErrorType.badRequest("Invalid search query"));
         }
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductListRes> products = productRepository.searchProducts(pageable, query.trim());
         return ResponseEntity.ok(ApiType.success(products));
     }
 
-    public ResponseEntity<AType> getProductsByCategory(
-            Integer page,
-            Integer size,
-            Integer categoryID) {
-
-        // 1. validate page and size
-        if (page == null || size == null) {
-            throw new ProductException(ProductErrorCode.INVALID_PAGE_SIZE);
-        }
-
-        // 2. validate categoryID
-        if (categoryID == null) {
-            throw new ProductException(ProductErrorCode.CATEGORY_NOT_FOUND);
-        }
-
-        // 3. create pageable
-        Pageable pageable = PageRequest.of(page, size);
-
-        // 4. find products
-        Page<ProductListRes> products = productRepository.getProductListByCategoryID(pageable, categoryID);
-
-        // 5. response
-        return ResponseEntity.ok(ApiType.success(products));
-    }
 
 }

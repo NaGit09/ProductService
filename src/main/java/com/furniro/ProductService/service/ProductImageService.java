@@ -7,9 +7,9 @@ import com.furniro.ProductService.database.repository.ProductRepository;
 import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.req.ProductImageReq;
-import com.furniro.ProductService.exception.ProductException;
+import com.furniro.ProductService.exception.CustomException;
 import com.furniro.ProductService.service.kafka.KafkaProducer;
-import com.furniro.ProductService.utils.ProductErrorCode;
+import com.furniro.ProductService.dto.API.ErrorType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +30,12 @@ public class ProductImageService {
     public ResponseEntity<AType> getProductImage(Integer id) {
         //1. validate id
         if(id == null){
-            throw new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product image not found"));
         }
         
         //2. get product image by id
         ProductImage productImage = productImageRepository.findById(id)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product image not found")));
         
         //3. response
         return ResponseEntity.ok(ApiType.success(productImage));
@@ -45,7 +45,7 @@ public class ProductImageService {
         (Integer productID) {
         //1. check product is existed
         productRepository.findById(productID)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
 
         //2. get product image by product ID
         List<ProductImage> productImage = productImageRepository
@@ -53,7 +53,7 @@ public class ProductImageService {
 
         //3. check product image is existed
         if(productImage.isEmpty()){
-            throw new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product image not found"));
         }
         
         //4. response
@@ -65,7 +65,7 @@ public class ProductImageService {
 
         // 1. check product is existed
         Product product = productRepository.findById(productImageReq.getProductID())
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
 
 
         // 2. create product image 
@@ -90,16 +90,16 @@ public class ProductImageService {
         (ProductImageReq productImageReq) {
         //1. validate id
         if (productImageReq.getId() == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product image not found"));
         }
 
         //2. get product image by id
         ProductImage productImage = productImageRepository.findById(productImageReq.getId())
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product image not found")));
 
         //3. check product is existed
         Product product = productRepository.findById(productImageReq.getProductID())
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
 
         //4. update product image
         productImage.setProduct(product);
@@ -120,12 +120,12 @@ public class ProductImageService {
     public ResponseEntity<AType> deleteProductImage(Integer id) {
         //1. validate id
         if (id == null) {
-            throw new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND);
+            throw new CustomException(ErrorType.notFound("Product image not found"));
         }
 
         //2. get product image by id
         ProductImage productImage = productImageRepository.findById(id)
-                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_IMAGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product image not found")));
 
         //3. delete product image
         productImageRepository.delete(productImage);
