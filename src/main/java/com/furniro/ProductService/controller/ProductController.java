@@ -1,13 +1,18 @@
 package com.furniro.ProductService.controller;
 
 import com.furniro.ProductService.dto.API.AType;
+import com.furniro.ProductService.dto.req.ProductUpdateReq;
+import com.furniro.ProductService.dto.req.ReviewReq;
 import com.furniro.ProductService.service.ProductService;
+import com.furniro.ProductService.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import com.furniro.ProductService.dto.req.ProductCreateReq;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
@@ -16,6 +21,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ReviewService reviewService;
 
     @GetMapping("/total")
     public ResponseEntity<AType> getTotalProduct() {
@@ -32,6 +38,11 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<AType> getProductDetail(@PathVariable Integer id) {
         return productService.getProductDetail(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AType> updateProduct(@PathVariable Integer id, @RequestBody ProductUpdateReq req) {
+        return productService.updateProduct(id, req);
     }
 
     @PostMapping("/compare")
@@ -94,5 +105,29 @@ public class ProductController {
             @RequestParam(defaultValue = "10") Integer size,
             @PathVariable Integer categoryID) {
         return productService.getProductsByCategory(page, size, categoryID);
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<AType> getProductReviews(@PathVariable Integer id) {
+        return reviewService.getProductReviews(id);
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<AType> addProductReview(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Integer id,
+            @RequestBody ReviewReq req) {
+        Integer userId = getUserIdFromJwt(jwt);
+        return reviewService.addProductReview(userId, id, req);
+    }
+
+    @PostMapping
+    public ResponseEntity<AType> createProduct(@RequestBody ProductCreateReq req) {
+        return productService.createProduct(req);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<AType> importProducts(@RequestParam("file") MultipartFile file) {
+        return productService.importProductsFromCsv(file);
     }
 }

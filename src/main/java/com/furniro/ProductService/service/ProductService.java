@@ -2,16 +2,25 @@ package com.furniro.ProductService.service;
 
 import com.furniro.ProductService.database.entity.Product;
 import com.furniro.ProductService.database.entity.Wishlist;
+import com.furniro.ProductService.database.entity.ProductSpecification;
+import com.furniro.ProductService.database.entity.Warranty;
 import com.furniro.ProductService.database.repository.ProductRepository;
 import com.furniro.ProductService.database.repository.WishlistRepository;
+import com.furniro.ProductService.database.repository.CategoryRepository;
+import com.furniro.ProductService.database.entity.Category;
 import com.furniro.ProductService.dto.API.AType;
 import com.furniro.ProductService.dto.API.ApiType;
 import com.furniro.ProductService.dto.mapper.ProductMapper;
 import com.furniro.ProductService.dto.res.ProductCompareRes;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
+import com.furniro.ProductService.dto.req.ProductUpdateReq;
+import com.furniro.ProductService.dto.req.ProductCreateReq;
+import com.furniro.ProductService.utils.ProductStatus;
 import com.furniro.ProductService.dto.API.ErrorType;
 import com.furniro.ProductService.exception.CustomException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +40,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final WishlistRepository wishlistRepository;
     private final ProductCacheService productCacheService;
+    private final CategoryRepository categoryRepository;
 
     // Product Management
     public ResponseEntity<AType> getTotalProduct() {
@@ -189,5 +199,175 @@ public class ProductService {
         return ResponseEntity.ok(ApiType.success(products));
     }
 
+    @Transactional
+    @CacheEvict(value = "product:detail", key = "#id")
+    public ResponseEntity<AType> updateProduct(Integer id, ProductUpdateReq req) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Product not found")));
 
+        if (req.getName() != null) product.setName(req.getName());
+        if (req.getDescription() != null) product.setDescription(req.getDescription());
+        if (req.getBasePrice() != null) product.setBasePrice(req.getBasePrice());
+        if (req.getBrand() != null) product.setBrand(req.getBrand());
+        if (req.getStatus() != null) {
+            try {
+                product.setStatus(ProductStatus.valueOf(req.getStatus().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(ErrorType.badRequest("Invalid product status"));
+            }
+        }
+
+        ProductSpecification spec = product.getSpecification();
+        if (spec == null) {
+            spec = new ProductSpecification();
+            spec.setProduct(product);
+            product.setSpecification(spec);
+        }
+        if (req.getWidth() != null) spec.setWidth(req.getWidth());
+        if (req.getHeight() != null) spec.setHeight(req.getHeight());
+        if (req.getDepth() != null) spec.setDepth(req.getDepth());
+        if (req.getWeight() != null) spec.setWeight(req.getWeight());
+        if (req.getMaterial() != null) spec.setMaterial(req.getMaterial());
+        if (req.getConfiguration() != null) spec.setConfiguration(req.getConfiguration());
+
+        Warranty warranty = product.getWarranty();
+        if (warranty == null) {
+            warranty = new Warranty();
+            warranty.setProduct(product);
+            product.setWarranty(warranty);
+        }
+        if (req.getWarrantyType() != null) warranty.setType(req.getWarrantyType());
+        if (req.getWarrantyDuration() != null) warranty.setDuration(req.getWarrantyDuration());
+        if (req.getWarrantySummary() != null) warranty.setSummary(req.getWarrantySummary());
+
+        productRepository.save(product);
+
+        ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
+        return ResponseEntity.ok(ApiType.success(productDetailRes));
+    }
+
+    @Transactional
+    public ResponseEntity<AType> createProduct(ProductCreateReq req) {
+        if (req.getName() == null || req.getBasePrice() == null || req.getCategoryID() == null) {
+            throw new CustomException(ErrorType.badRequest("Missing required fields (name, basePrice, categoryID)"));
+        }
+
+        Category category = categoryRepository.findById(req.getCategoryID())
+                .orElseThrow(() -> new CustomException(ErrorType.notFound("Category not found")));
+
+        Product product = new Product();
+        product.setName(req.getName());
+        product.setDescription(req.getDescription());
+        product.setBasePrice(req.getBasePrice());
+        product.setBrand(req.getBrand());
+        product.setCategory(category);
+        product.setStatus(ProductStatus.ACTIVE);
+
+        // Specifications
+        ProductSpecification spec = new ProductSpecification();
+        spec.setProduct(product);
+        spec.setWidth(req.getWidth() != null ? req.getWidth() : 0);
+        spec.setHeight(req.getHeight() != null ? req.getHeight() : 0);
+        spec.setDepth(req.getDepth() != null ? req.getDepth() : 0);
+        spec.setWeight(req.getWeight() != null ? req.getWeight() : 0);
+        spec.setMaterial(req.getMaterial() != null ? req.getMaterial() : "N/A");
+        spec.setConfiguration(req.getConfiguration() != null ? req.getConfiguration() : "N/A");
+        product.setSpecification(spec);
+
+        // Warranty
+        Warranty warranty = new Warranty();
+        warranty.setProduct(product);
+        warranty.setType(req.getWarrantyType() != null ? req.getWarrantyType() : "N/A");
+        warranty.setDuration(req.getWarrantyDuration() != null ? req.getWarrantyDuration() : "N/A");
+        warranty.setSummary(req.getWarrantySummary() != null ? req.getWarrantySummary() : "N/A");
+        product.setWarranty(warranty);
+
+        productRepository.save(product);
+
+        ProductDetailRes productDetailRes = productMapper.toDetailRes(product);
+        return ResponseEntity.ok(ApiType.success(productDetailRes));
+    }
+
+    @Transactional
+    public ResponseEntity<AType> importProductsFromCsv(org.springframework.web.multipart.MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new CustomException(ErrorType.badRequest("File cannot be empty"));
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+        List<String> errors = new java.util.ArrayList<>();
+
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(file.getInputStream(), java.nio.charset.StandardCharsets.UTF_8))) {
+
+            String line = reader.readLine(); // Header
+
+            int lineNum = 1;
+            while ((line = reader.readLine()) != null) {
+                lineNum++;
+                if (line.trim().isEmpty()) continue;
+
+                String[] cols = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+                if (cols.length < 5) {
+                    failCount++;
+                    errors.add("Line " + lineNum + ": Missing required columns (Name,Description,BasePrice,Brand,CategoryID)");
+                    continue;
+                }
+
+                try {
+                    String name = cols[0].trim().replace("\"", "");
+                    String description = cols[1].trim().replace("\"", "");
+                    java.math.BigDecimal basePrice = new java.math.BigDecimal(cols[2].trim());
+                    String brand = cols[3].trim().replace("\"", "");
+                    Integer categoryId = Integer.valueOf(cols[4].trim());
+
+                    Category category = categoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new IllegalArgumentException("Category not found with ID: " + categoryId));
+
+                    Product product = new Product();
+                    product.setName(name);
+                    product.setDescription(description);
+                    product.setBasePrice(basePrice);
+                    product.setBrand(brand);
+                    product.setCategory(category);
+                    product.setStatus(ProductStatus.ACTIVE);
+
+                    // Specifications
+                    ProductSpecification spec = new ProductSpecification();
+                    spec.setProduct(product);
+                    spec.setWidth(cols.length > 5 && !cols[5].trim().isEmpty() ? Integer.valueOf(cols[5].trim()) : 0);
+                    spec.setHeight(cols.length > 6 && !cols[6].trim().isEmpty() ? Integer.valueOf(cols[6].trim()) : 0);
+                    spec.setDepth(cols.length > 7 && !cols[7].trim().isEmpty() ? Integer.valueOf(cols[7].trim()) : 0);
+                    spec.setWeight(cols.length > 8 && !cols[8].trim().isEmpty() ? Integer.valueOf(cols[8].trim()) : 0);
+                    spec.setMaterial(cols.length > 9 && !cols[9].trim().isEmpty() ? cols[9].trim().replace("\"", "") : "N/A");
+                    spec.setConfiguration(cols.length > 10 && !cols[10].trim().isEmpty() ? cols[10].trim().replace("\"", "") : "N/A");
+                    product.setSpecification(spec);
+
+                    // Warranty
+                    Warranty warranty = new Warranty();
+                    warranty.setProduct(product);
+                    warranty.setType(cols.length > 11 && !cols[11].trim().isEmpty() ? cols[11].trim().replace("\"", "") : "N/A");
+                    warranty.setDuration(cols.length > 12 && !cols[12].trim().isEmpty() ? cols[12].trim().replace("\"", "") : "N/A");
+                    warranty.setSummary(cols.length > 13 && !cols[13].trim().isEmpty() ? cols[13].trim().replace("\"", "") : "N/A");
+                    product.setWarranty(warranty);
+
+                    productRepository.save(product);
+                    successCount++;
+                } catch (Exception ex) {
+                    failCount++;
+                    errors.add("Line " + lineNum + ": " + ex.getMessage());
+                }
+            }
+
+            java.util.Map<String, Object> result = java.util.Map.of(
+                    "successCount", successCount,
+                    "failCount", failCount,
+                    "errors", errors
+            );
+            return ResponseEntity.ok(ApiType.success(result));
+        } catch (Exception e) {
+            throw new CustomException(ErrorType.badRequest("Failed to parse CSV upload: " + e.getMessage()));
+        }
+    }
 }

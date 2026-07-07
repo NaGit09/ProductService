@@ -47,6 +47,8 @@ spring:
 services:
   recommend-service:
     url: http://recom-product-service:8087
+  order-service:
+    url: http://order-service:8082
 
 server:
   forward-headers-strategy: framework
