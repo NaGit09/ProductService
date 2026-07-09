@@ -14,12 +14,13 @@ import com.furniro.ProductService.dto.res.ReviewRes;
 import com.furniro.ProductService.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.cache.Cache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
     private final OrderServiceClient orderServiceClient;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     public ResponseEntity<AType> getProductReviews(Integer productID) {
         List<Review> reviews = reviewRepository.findByProduct_ProductID(productID);
@@ -42,7 +44,7 @@ public class ReviewService {
                         .comment(r.getComment())
                         .createdAt(r.getCreatedAt())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(ApiType.success(response));
     }
 
@@ -64,8 +66,8 @@ public class ReviewService {
         }
 
         List<Integer> variantIDs = variants.stream()
-                .map(ProductVariant::getVariantID)
-                .collect(Collectors.toList());
+                .map(v -> v.getVariantID())
+                .toList();
 
         // 4. Check if user has purchased at least one of these variants
         boolean hasPurchased = orderServiceClient.hasUserPurchasedVariants(userID, variantIDs);
@@ -81,6 +83,23 @@ public class ReviewService {
         review.setComment(req.getComment());
 
         reviewRepository.save(review);
+
+        // 6. Recalculate average rating and review count
+        List<Review> reviews = reviewRepository.findByProduct_ProductID(productID);
+        double totalRating = 0;
+        for (Review r : reviews) {
+            totalRating += r.getRating();
+        }
+        double avgRating = reviews.isEmpty() ? 0.0 : totalRating / reviews.size();
+        product.setAverageRating(avgRating);
+        product.setReviewCount(reviews.size());
+        productRepository.save(product);
+
+        // 7. Evict product detail cache
+        Cache cache = cacheManager.getCache("product:detail");
+        if (cache != null) {
+            cache.evict(productID);
+        }
 
         ReviewRes response = ReviewRes.builder()
                 .reviewID(review.getReviewID())

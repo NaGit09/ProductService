@@ -187,15 +187,55 @@ public class ProductService {
     }
 
     // Search Management
-    public ResponseEntity<AType> searchProducts(Integer page, Integer size, String query) {
-        if (page == null || size == null) {
+    public ResponseEntity<AType> searchProducts(
+            String query, Integer categoryID, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+            Integer colorID, Integer sizeID, String material, String sortBy, Integer page, Integer size) {
+
+        if (page == null || size == null || page < 0 || size <= 0) {
             throw new CustomException(ErrorType.badRequest("Invalid page size"));
         }
-        if (query == null || query.isEmpty()) {
-            throw new CustomException(ErrorType.badRequest("Invalid search query"));
+
+        // Build sorting
+        org.springframework.data.domain.Sort sort;
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by("basePrice").ascending();
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by("basePrice").descending();
+        } else if ("rating_desc".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by("averageRating").descending();
+        } else {
+            sort = org.springframework.data.domain.Sort.by("createdAt").descending();
         }
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductListRes> products = productRepository.searchProducts(pageable, query.trim());
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Build dynamic specification
+        org.springframework.data.jpa.domain.Specification<Product> spec = org.springframework.data.jpa.domain.Specification.where(
+                com.furniro.ProductService.database.specification.ProductSpecs.isActive()
+        );
+
+        if (query != null && !query.trim().isEmpty()) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasKeyword(query));
+        }
+        if (categoryID != null) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasCategory(categoryID));
+        }
+        if (minPrice != null || maxPrice != null) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasPriceBetween(minPrice, maxPrice));
+        }
+        if (colorID != null) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasColor(colorID));
+        }
+        if (sizeID != null) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasSize(sizeID));
+        }
+        if (material != null && !material.trim().isEmpty()) {
+            spec = spec.and(com.furniro.ProductService.database.specification.ProductSpecs.hasMaterial(material));
+        }
+
+        Page<ProductListRes> products = productRepository.findAll(spec, pageable)
+                .map(productMapper::toListRes);
+
         return ResponseEntity.ok(ApiType.success(products));
     }
 

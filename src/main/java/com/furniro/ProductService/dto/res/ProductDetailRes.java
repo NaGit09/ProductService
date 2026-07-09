@@ -48,4 +48,7 @@ public class ProductDetailRes {
     private String warrantyType;
     private String warrantyDuration;
     private String warrantySummary;
+
+    private Double averageRating;
+    private Integer reviewCount;
 }

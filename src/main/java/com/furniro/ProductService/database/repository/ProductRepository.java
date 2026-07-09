@@ -34,7 +34,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>,
                     p.brand,
                     p.description,
                     p.basePrice,
-                    pi.url
+                    pi.url,
+                    p.averageRating,
+                    p.reviewCount
                 )
                 FROM Product p
                 LEFT JOIN p.images pi ON pi.sortOrder = 0
@@ -70,7 +72,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>,
                     p.brand,
                     p.description,
                     p.basePrice,
-                    pi.url
+                    pi.url,
+                    p.averageRating,
+                    p.reviewCount
                 )
                 FROM Product p
                 LEFT JOIN p.images pi ON pi.sortOrder = 0
@@ -85,7 +89,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>,
                     p.brand,
                     p.description,
                     p.basePrice,
-                    pi.url
+                    pi.url,
+                    p.averageRating,
+                    p.reviewCount
                 )
                 FROM Product p
                 LEFT JOIN p.images pi ON pi.sortOrder = 0

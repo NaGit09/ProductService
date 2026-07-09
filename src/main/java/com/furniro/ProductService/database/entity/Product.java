@@ -34,6 +34,10 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status = ProductStatus.ACTIVE;
 
+    private Double averageRating = 0.0;
+
+    private Integer reviewCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CategoryID", nullable = false)
     private Category category;

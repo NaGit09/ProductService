@@ -94,10 +94,17 @@ public class ProductController {
     // Search product
     @GetMapping("/search")
     public ResponseEntity<AType> searchProducts(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Integer categoryID,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) Integer colorID,
+            @RequestParam(required = false) Integer sizeID,
+            @RequestParam(required = false) String material,
+            @RequestParam(defaultValue = "newest") String sortBy,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam String query) {
-        return productService.searchProducts(page, size, query);
+            @RequestParam(defaultValue = "10") Integer size) {
+        return productService.searchProducts(query, categoryID, minPrice, maxPrice, colorID, sizeID, material, sortBy, page, size);
     }
     @GetMapping("/category/{categoryID}")
     public ResponseEntity<AType> getProductsByCategory(
