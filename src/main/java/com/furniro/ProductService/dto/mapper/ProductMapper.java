@@ -8,6 +8,7 @@ import com.furniro.ProductService.database.entity.Product;
 import com.furniro.ProductService.database.entity.ProductImage;
 import com.furniro.ProductService.database.entity.ProductVariant;
 import com.furniro.ProductService.dto.res.ProductDetailRes;
+import com.furniro.ProductService.dto.res.ProductVariantRes;
 import com.furniro.ProductService.dto.res.ProductListRes;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public interface ProductMapper {
     @Mapping(source = "variants", target = "colors", qualifiedByName = "mapColors")
     @Mapping(source = "variants", target = "skus", qualifiedByName = "mapSkus")
     @Mapping(source = "variants", target = "productVariantID", qualifiedByName = "mapProductVariantID")
+    @Mapping(source = "variants", target = "variants", qualifiedByName = "mapVariants")
 
     ProductDetailRes toDetailRes(Product product);
 
@@ -98,8 +100,23 @@ public interface ProductMapper {
         if (variants == null)
             return null;
         return variants.stream()
-                .findFirst()
                 .map(ProductVariant::getVariantID)
+                .findFirst()
                 .orElse(null);
+    }
+
+    @Named("mapVariants")
+    default List<ProductVariantRes> mapVariants(List<ProductVariant> variants) {
+        if (variants == null)
+            return null;
+        return variants.stream()
+                .map(v -> ProductVariantRes.builder()
+                        .variantID(v.getVariantID())
+                        .price(v.getPrice())
+                        .sku(v.getSku())
+                        .color(v.getColor() != null ? v.getColor().getColorName() : "N/A")
+                        .size(v.getSize() != null ? v.getSize().getSizeName() : "N/A")
+                        .build())
+                .toList();
     }
 }

@@ -35,6 +35,7 @@ public class ProductDetailRes {
     private List<String> sizes;
     private List<String> colors;
     private List<String> skus;
+    private List<ProductVariantRes> variants;
 
     // Specification
     private Integer width;

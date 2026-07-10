@@ -18,9 +18,6 @@ public class ProductVariant {
 
     private Integer price;
 
-    @Column(columnDefinition = "integer default 0")
-    private Integer stockQuantity = 0;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "productID", nullable = false)
     @JsonBackReference
